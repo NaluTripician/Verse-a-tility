@@ -1,0 +1,119 @@
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options  # for suppressing the browser head
+from bs4 import BeautifulSoup
+from CleanCSV import cleanCSV
+import re #regular expressions
+import csv
+
+# Suppresses the opening of an actual browser window
+options = webdriver.ChromeOptions()
+options.add_argument('headless')
+options.add_argument('log-level=3') # Suppresses error messages
+
+# Creates a Google Chrome webDriver object
+driver = webdriver.Chrome(options=options)
+
+"""
+Scrapes a google search page and creates a BeautifulSoup object of all the text in the page
+then searches through every non-google link in the search page and applies a scraping
+function to it
+
+url: string, the url of a google search results page
+function: function, a function which can scrape through a link
+csv_out: string, a csv file name
+returns: None, runs function on each link in the search page
+"""
+def scrapeFromGoogle(urls, function, csv_out):
+
+    for url in urls:
+        driver.get(url)
+        soup = BeautifulSoup(driver.page_source, "lxml") #creates a BeautifulSoup object, which represents the document as a nested data structed
+        unique_links = []
+        for link in soup.find_all("a"):
+            # Create a temporary variable 'url' that is equal to the href attribute of link
+            temp_url = link.get('href')
+            if temp_url not in unique_links:
+                unique_links.append(temp_url)
+                # Checks whether the url is None or not and whether or not it is a valid url
+                if temp_url != None and temp_url[:5] == "https" and re.findall("google", temp_url) == []:
+                    function(temp_url, csv_out)
+
+"""
+Scrapes the top karaoke songs from a link
+
+url: string
+csv_out: string, a csv name
+returns: None, writes to a csv
+"""
+def scrapeTopKaraokeSongs(url, csv_out):
+
+    songs_for_this_url = findSongs(url) # Creates a variable for the list of songs from temp_url
+    writeListCSV(songs_for_this_url, csv_out) # writes to song_list.csv after each page so the code doesn't need to run all the way
+
+
+"""
+Create a csv where each song in song_list is a new line, writing to csv_given and then cleaning it
+
+xs: A list of strings
+csv_given: str, a csv file (will create one if the variable file doesn't exist)
+returns: None, modifies and cleans csv_given
+"""
+def writeListCSV(item_list, csv_out):
+    with open(csv_out, 'a') as csvFile: # Opens it in append mode
+        writer = csv.writer(csvFile)
+        for item in item_list:
+            writer.writerow([item])
+
+    csvFile.close()
+    cleanCSV(csv_out)
+
+
+"""
+Takes a URL and finds all the strings of songs in it
+
+url: string
+returns: list
+"""
+def findSongs(url):
+    driver.get(url) # Navigates to the webpage listed
+    page_text = driver.find_element_by_tag_name("body").text
+    list_of_songs = []
+
+    # Create a regular expression that checks if the regexp is preceeded by the
+    # Open quote character and is any number of characters followed by the close quote character
+
+    between_quotes = re.compile(r'(?<=“).*(?=”)')
+    all_between_quotes = re.findall(between_quotes, page_text)
+    list_of_songs += all_between_quotes
+
+    # checks if preceeeded by a match for any \d is any digit, . is any char, (?=\s*-) checks if the NEXT string matches \s* (any white space chars) -
+
+    between_num_dash = re.compile('\d*.*(?=\s*–)') #create a regexp that takes anything between a number and a dash
+    all_num_dash_matches = re.findall(between_num_dash, page_text) # Get a list of all the matches of the regexp in the page
+    list_of_songs += all_num_dash_matches
+
+    return list_of_songs
+
+"""
+Abstract code for finding items in a page using regexps
+
+url: string
+reg_exp: re, a regular expression
+return: list
+"""
+def findItems(url, reg_exp):
+    driver.get(url) # Navigates to the webpage listed
+    page_text = driver.find_element_by_tag_name("body").text
+    list_of_items = re.findall(reg_exp, page_text)
+
+    return list_of_items
+
+#creates a song list from the google page for the search "best Karaoke songs"
+
+googleLinks = [ 'https://www.google.com/search?q=best+karaoke+song&oq=best&aqs=chrome.0.69i59j69i57j46i131i199i291i433j0i131i433l2j69i59j69i60l2.710j0j7&sourceid=chrome&ie=UTF-8',
+                'https://www.google.com/search?q=best+karaoke+song&ei=CdjCX4zZK9H25gKexrGwDQ&start=10&sa=N&ved=2ahUKEwjMgemnrabtAhVRu1kKHR5jDNYQ8NMDegUIDhDuAQ&biw=1440&bih=758',
+                'https://www.google.com/search?q=best+karaoke+song&ei=DtjCX8nCC8325gK567OYAQ&start=20&sa=N&ved=2ahUKEwjJgfqprabtAhVNu1kKHbn1DBM4ChDy0wN6BAgIEDc&biw=1440&bih=758',
+                'https://www.google.com/search?q=best+karaoke+song&ei=MdjCX_yhA4Lt5gKLobDwDQ&start=30&sa=N&ved=2ahUKEwi8_sm6rabtAhWCtlkKHYsQDN44FBDw0wN6BAgIEEc&biw=1440&bih=758'
+]
+
+song_list_from_google = scrapeFromGoogle(googleLinks, scrapeTopKaraokeSongs, 'songs.csv')
