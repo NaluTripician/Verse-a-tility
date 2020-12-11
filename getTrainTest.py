@@ -17,8 +17,8 @@ worst4 = ranks[-200:-150]
 sets=[  [("Dataset/Good/",best1),("Dataset/Good/",best2),("Dataset/Good/",best3),("Dataset/Good/",best4)],
         [("Dataset/Bad/",worst1),("Dataset/Bad/",worst2),("Dataset/Bad/",worst3),("Dataset/Bad/",worst4)]]
 
-client_id = "1cc2b52f7c6447409439ddc56223fb26"
-client_secret = "c1e05ecad59f4208aea0fb91d79fdbd4"
+client_id = ""
+client_secret = ""
 
 spotify = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials(client_id=client_id, client_secret=client_secret))
 

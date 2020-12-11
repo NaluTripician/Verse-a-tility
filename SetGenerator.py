@@ -15,8 +15,8 @@ Need to make the first part a function, and then pass a variable for writing CSV
 
 def setGenerator(write,filepath):
     # Spotify Authorization informnation
-    client_id = "1cc2b52f7c6447409439ddc56223fb26"
-    client_secret = "c1e05ecad59f4208aea0fb91d79fdbd4"
+    client_id = ""
+    client_secret = ""
 
     token = SpotifyClientCredentials(client_id=client_id, client_secret=client_secret, proxies=None).get_access_token()
 

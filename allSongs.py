@@ -6,8 +6,8 @@ import pandas as pd
 import time
 
 username = 'nalutrip'
-client_id = "1cc2b52f7c6447409439ddc56223fb26"
-client_secret = "c1e05ecad59f4208aea0fb91d79fdbd4"
+client_id = ""
+client_secret = ""
 uri = "https://dknopf.github.io/Verse-a-tility"
 
 scope = "playlist-read-private,user-read-private,playlist-read-collaborative,user-library-read"
